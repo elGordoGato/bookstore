@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${book.id == null ? 'Add Book' : 'Edit Book'} + ' - Bookstore Management'"></title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout :: body}">
+    <div th:fragment="content">
+        <div class="container mt-4">
+            <div th:if="${message}" class="alert alert-dismissible"
+                 th:classappend="${message.type == 'SUCCESS' ? 'alert-success' : 'alert-danger'}">
+                <span th:text="${message.content}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 th:text="${book.id == null ? 'Add New Book' : 'Edit Book'}"></h2>
+                <a th:href="@{/books}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form th:action="@{/books/save}" method="post" th:object="${book}" class="needs-validation" novalidate>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="vendorCode" class="form-label">Vendor Code</label>
+                                <input type="text" class="form-control" id="vendorCode" th:field="*{vendorCode}"
+                                       th:classappend="${#fields.hasErrors('vendorCode')} ? 'is-invalid'"
+                                       required minlength="3" maxlength="50"
+                                       aria-describedby="vendorCodeHelp vendorCodeError">
+                                <div id="vendorCodeHelp" class="form-text">Unique identifier for the book</div>
+                                <div id="vendorCodeError" class="invalid-feedback" th:if="${#fields.hasErrors('vendorCode')}"
+                                     th:errors="*{vendorCode}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="title" th:field="*{title}"
+                                       th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                                       required minlength="2" maxlength="100"
+                                       aria-describedby="titleError">
+                                <div id="titleError" class="invalid-feedback" th:if="${#fields.hasErrors('title')}"
+                                     th:errors="*{title}"></div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="year" class="form-label">Year</label>
+                                <input type="number" class="form-control" id="year" th:field="*{year}"
+                                       th:classappend="${#fields.hasErrors('year')} ? 'is-invalid'"
+                                       required min="1500" max="2100" step="1"
+                                       aria-describedby="yearError">
+                                <div id="yearError" class="invalid-feedback" th:if="${#fields.hasErrors('year')}"
+                                     th:errors="*{year}"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="brand" class="form-label">Brand</label>
+                                <input type="text" class="form-control" id="brand" th:field="*{brand}"
+                                       th:classappend="${#fields.hasErrors('brand')} ? 'is-invalid'"
+                                       required minlength="2" maxlength="50"
+                                       aria-describedby="brandError">
+                                <div id="brandError" class="invalid-feedback" th:if="${#fields.hasErrors('brand')}"
+                                     th:errors="*{brand}"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="stock" class="form-label">Stock</label>
+                                <input type="number" class="form-control" id="stock" th:field="*{stock}"
+                                       th:classappend="${#fields.hasErrors('stock')} ? 'is-invalid'"
+                                       required min="0" step="1"
+                                       aria-describedby="stockError">
+                                <div id="stockError" class="invalid-feedback" th:if="${#fields.hasErrors('stock')}"
+                                     th:errors="*{stock}"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="price" class="form-label">Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="price" th:field="*{price}"
+                                       th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'"
+                                       required min="0" step="0.01"
+                                       aria-describedby="priceError">
+                                <div id="priceError" class="invalid-feedback" th:if="${#fields.hasErrors('price')}"
+                                     th:errors="*{price}"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-3">
+                            <button type="reset" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-undo me-1"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save me-1"></i> Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script>
+            (function() {
+                'use strict';
+
+                const forms = document.querySelectorAll('.needs-validation');
+
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', event => {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+
+                        form.classList.add('was-validated');
+
+                        const submitBtn = document.getElementById('submitBtn');
+                        if (submitBtn && form.checkValidity()) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Saving...';
+                        }
+                    }, false);
+                });
+            })();
+        </script>
+    </div>
+</div>
+</body>
+</html>

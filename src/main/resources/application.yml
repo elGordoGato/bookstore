@@ -1,0 +1,22 @@
+server:
+    port: 8080
+spring:
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        password: bookstore
+        url: jdbc:postgresql://localhost:5432/bookstoredb
+        username: bookstore
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                format_sql: true
+        show-sql: true
+    security:
+        user:
+            name: admin
+            password: admin
+    thymeleaf:
+        cache: false

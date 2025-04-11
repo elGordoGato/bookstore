@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Books - Bookstore Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sort-icon {
+            margin-left: 0.25rem;
+        }
+        .table th {
+            white-space: nowrap;
+        }
+        .table th a {
+            color: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .table th a:hover {
+            color: var(--bs-primary);
+        }
+        .low-stock {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+        .pagination {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout :: html}">
+    <div th:fragment="content">
+        <div class="container-fluid py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">Books Management</h2>
+                <a th:href="@{/books/new}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Book
+                </a>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form th:action="@{/books}" method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" th:value="${param.title}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="brand" class="form-label">Brand</label>
+                            <input type="text" class="form-control" id="brand" name="brand" th:value="${param.brand}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="year" class="form-label">Year</label>
+                            <input type="number" class="form-control" id="year" name="year" th:value="${param.year}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="size" class="form-label">Items per page</label>
+                            <select class="form-select" id="size" name="size">
+                                <option value="5" th:selected="${param.size != null and param.size[0] == '5'}">5</option>
+                                <option value="10" th:selected="${param.size == null or param.size[0] == '10'}">10</option>
+                                <option value="20" th:selected="${param.size != null and param.size[0] == '20'}">20</option>
+                                <option value="50" th:selected="${param.size != null and param.size[0] == '50'}">50</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-2"></i>Apply Filters
+                            </button>
+                        </div>
+                        <input type="hidden" name="sort" th:value="${param.sort}">
+                        <input type="hidden" name="page" th:value="${param.page}">
+                    </form>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="text-muted" th:with="start=${books.number * books.size + 1},
+                                               end=${(books.number * books.size) + books.numberOfElements}">
+                    <span th:if="${books.totalElements > 0}">
+                        Showing <span th:text="${start}"></span> to <span th:text="${end}"></span> 
+                        of <span th:text="${books.totalElements}"></span> entries
+                    </span>
+                    <span th:unless="${books.totalElements > 0}">No books found</span>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <a th:href="@{/books(
+                                        title=${param.title},
+                                        brand=${param.brand},
+                                        year=${param.year},
+                                        page=0,
+                                        size=${param.size},
+                                        sort=${param.sort != null and param.sort[0] == 'id,asc' ? 'id,desc' : 'id,asc'}
+                                    )}">
+                                        ID
+                                        <i class="fas sort-icon"
+                                           th:classappend="${param.sort != null and param.sort[0] == 'id,asc' ? 'fa-sort-up' : 
+                                                          (param.sort != null and param.sort[0] == 'id,desc' ? 'fa-sort-down' : 'fa-sort')}">
+                                        </i>
+                                    </a>
+                                </th>
+                                <th>Vendor Code</th>
+                                <th>
+                                    <a th:href="@{/books(
+                                        title=${param.title},
+                                        brand=${param.brand},
+                                        year=${param.year},
+                                        page=0,
+                                        size=${param.size},
+                                        sort=${param.sort != null and param.sort[0] == 'title,asc' ? 'title,desc' : 'title,asc'}
+                                    )}">
+                                        Title
+                                        <i class="fas sort-icon"
+                                           th:classappend="${param.sort != null and param.sort[0] == 'title,asc' ? 'fa-sort-up' : 
+                                                          (param.sort != null and param.sort[0] == 'title,desc' ? 'fa-sort-down' : 'fa-sort')}">
+                                        </i>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a th:href="@{/books(
+                                        title=${param.title},
+                                        brand=${param.brand},
+                                        year=${param.year},
+                                        page=0,
+                                        size=${param.size},
+                                        sort=${param.sort != null and param.sort[0] == 'year,asc' ? 'year,desc' : 'year,asc'}
+                                    )}">
+                                        Year
+                                        <i class="fas sort-icon"
+                                           th:classappend="${param.sort != null and param.sort[0] == 'year,asc' ? 'fa-sort-up' : 
+                                                          (param.sort != null and param.sort[0] == 'year,desc' ? 'fa-sort-down' : 'fa-sort')}">
+                                        </i>
+                                    </a>
+                                </th>
+                                <th>Brand</th>
+                                <th>
+                                    <a th:href="@{/books(
+                                        title=${param.title},
+                                        brand=${param.brand},
+                                        year=${param.year},
+                                        page=0,
+                                        size=${param.size},
+                                        sort=${param.sort != null and param.sort[0] == 'stock,asc' ? 'stock,desc' : 'stock,asc'}
+                                    )}">
+                                        Stock
+                                        <i class="fas sort-icon"
+                                           th:classappend="${param.sort != null and param.sort[0] == 'stock,asc' ? 'fa-sort-up' : 
+                                                          (param.sort != null and param.sort[0] == 'stock,desc' ? 'fa-sort-down' : 'fa-sort')}">
+                                        </i>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a th:href="@{/books(
+                                        title=${param.title},
+                                        brand=${param.brand},
+                                        year=${param.year},
+                                        page=0,
+                                        size=${param.size},
+                                        sort=${param.sort != null and param.sort[0] == 'price,asc' ? 'price,desc' : 'price,asc'}
+                                    )}">
+                                        Price
+                                        <i class="fas sort-icon"
+                                           th:classappend="${param.sort != null and param.sort[0] == 'price,asc' ? 'fa-sort-up' : 
+                                                          (param.sort != null and param.sort[0] == 'price,desc' ? 'fa-sort-down' : 'fa-sort')}">
+                                        </i>
+                                    </a>
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="book : ${books}" th:class="${book.stock == 0 ? 'low-stock' : ''}">
+                                <td th:text="${book.id}"></td>
+                                <td th:text="${book.vendorCode}"></td>
+                                <td th:text="${book.title}"></td>
+                                <td th:text="${book.year}"></td>
+                                <td th:text="${book.brand}"></td>
+                                <td th:text="${book.stock}"></td>
+                                <td th:text="${#numbers.formatDecimal(book.price, 1, 2)}"></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{/books/edit/{id}(id=${book.id})}"
+                                           class="btn btn-outline-primary"
+                                           title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a th:href="@{/books/delete/{id}(id=${book.id})}"
+                                           class="btn btn-outline-danger"
+                                           title="Delete"
+                                           onclick="return confirm('Are you sure you want to delete this book?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer bg-white" th:if="${books.totalPages > 1}">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${books.first ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/books(
+                                    title=${param.title},
+                                    brand=${param.brand},
+                                    year=${param.year},
+                                    page=0,
+                                    size=${param.size},
+                                    sort=${param.sort}
+                                )}" aria-label="First">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${books.first ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/books(
+                                    title=${param.title},
+                                    brand=${param.brand},
+                                    year=${param.year},
+                                    page=${books.number - 1},
+                                    size=${param.size},
+                                    sort=${param.sort}
+                                )}" aria-label="Previous">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+
+                            <li class="page-item" 
+                                th:each="pageNum : ${#numbers.sequence(0, books.totalPages - 1)}"
+                                th:if="${pageNum >= books.number - 2 and pageNum <= books.number + 2}"
+                                th:classappend="${pageNum == books.number ? 'active' : ''}">
+                                <a class="page-link" th:href="@{/books(
+                                    title=${param.title},
+                                    brand=${param.brand},
+                                    year=${param.year},
+                                    page=${pageNum},
+                                    size=${param.size},
+                                    sort=${param.sort}
+                                )}" th:text="${pageNum + 1}">
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${books.last ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/books(
+                                    title=${param.title},
+                                    brand=${param.brand},
+                                    year=${param.year},
+                                    page=${books.number + 1},
+                                    size=${param.size},
+                                    sort=${param.sort}
+                                )}" aria-label="Next">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${books.last ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/books(
+                                    title=${param.title},
+                                    brand=${param.brand},
+                                    year=${param.year},
+                                    page=${books.totalPages - 1},
+                                    size=${param.size},
+                                    sort=${param.sort}
+                                )}" aria-label="Last">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
